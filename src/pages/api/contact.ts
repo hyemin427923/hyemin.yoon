@@ -14,14 +14,29 @@ export const POST: APIRoute = async ({ request, locals }) => {
             );
         }
 
-        // 2. 환경 변수 조회 (Astro v6 Cloudflare Workers env 또는 Vite meta env)
-        const runtime = (locals as any).runtime;
-        const botToken = runtime?.env?.TELEGRAM_BOT_TOKEN || import.meta.env.TELEGRAM_BOT_TOKEN;
-        const chatId = runtime?.env?.TELEGRAM_CHAT_ID || import.meta.env.TELEGRAM_CHAT_ID;
+        // 2. 환경 변수 조회
+        let botToken = '';
+        let chatId = '';
+        
+        try {
+            const runtime = locals && (locals as any).runtime;
+            botToken = runtime?.env?.TELEGRAM_BOT_TOKEN;
+            chatId = runtime?.env?.TELEGRAM_CHAT_ID;
+            
+            // Fallback for local dev
+            if (!botToken) {
+                botToken = import.meta.env.TELEGRAM_BOT_TOKEN;
+            }
+            if (!chatId) {
+                chatId = import.meta.env.TELEGRAM_CHAT_ID;
+            }
+        } catch (envErr: any) {
+            console.error('Env Variable Access Error:', envErr);
+        }
 
         if (!botToken || !chatId) {
             return new Response(
-                JSON.stringify({ error: '텔레그램 봇 토큰 또는 채팅 ID 설정이 유실되었습니다. 시스템 설정을 확인하세요.' }),
+                JSON.stringify({ error: '텔레그램 봇 토큰 또는 채팅 ID 설정이 유실되었습니다.' }),
                 { status: 500, headers: { 'Content-Type': 'application/json' } }
             );
         }
@@ -46,7 +61,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
             const errorText = await telegramRes.text();
             console.error('Telegram API Error:', errorText);
             return new Response(
-                JSON.stringify({ error: '텔레그램 메시지 발송에 실패했습니다.' }),
+                JSON.stringify({ error: `텔레그램 메시지 발송 실패: ${errorText.substring(0, 50)}` }),
                 { status: 502, headers: { 'Content-Type': 'application/json' } }
             );
         }
@@ -59,7 +74,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     } catch (err: any) {
         console.error('Contact API Internal Error:', err);
         return new Response(
-            JSON.stringify({ error: '서버 내부 오류가 발생했습니다.' }),
+            JSON.stringify({ error: `서버 내부 오류: ${err.message || '알 수 없는 오류'}` }),
             { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
     }
