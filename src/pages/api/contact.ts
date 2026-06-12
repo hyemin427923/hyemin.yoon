@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
     try {
         const body = await request.json();
         const { name, email, message } = body;
@@ -15,8 +15,9 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         // 2. 환경 변수 조회 (Astro v6 Cloudflare Workers env 또는 Vite meta env)
-        const botToken = (env as any).TELEGRAM_BOT_TOKEN || import.meta.env.TELEGRAM_BOT_TOKEN;
-        const chatId = (env as any).TELEGRAM_CHAT_ID || import.meta.env.TELEGRAM_CHAT_ID;
+        const runtime = (locals as any).runtime;
+        const botToken = runtime?.env?.TELEGRAM_BOT_TOKEN || import.meta.env.TELEGRAM_BOT_TOKEN;
+        const chatId = runtime?.env?.TELEGRAM_CHAT_ID || import.meta.env.TELEGRAM_CHAT_ID;
 
         if (!botToken || !chatId) {
             return new Response(
