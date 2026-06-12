@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request }) => {
     try {
         const body = await request.json();
         const { name, email, message } = body;
@@ -14,27 +14,24 @@ export const POST: APIRoute = async ({ request, locals }) => {
             );
         }
 
-        // 2. 환경 변수 조회
+        // 2. 환경 변수 조회 (Astro v6 공식 방식)
         let botToken = '';
         let chatId = '';
         
         try {
-            const runtimeEnv = locals && (locals as any).runtime ? (locals as any).runtime.env : {};
             const globalEnv = (globalThis as any)?.env || {};
             const procEnv = (typeof process !== 'undefined' && process.env) ? process.env : {};
 
-            botToken = runtimeEnv?.TELEGRAM_BOT_TOKEN || globalEnv?.TELEGRAM_BOT_TOKEN || procEnv?.TELEGRAM_BOT_TOKEN || import.meta.env.TELEGRAM_BOT_TOKEN;
-            chatId = runtimeEnv?.TELEGRAM_CHAT_ID || globalEnv?.TELEGRAM_CHAT_ID || procEnv?.TELEGRAM_CHAT_ID || import.meta.env.TELEGRAM_CHAT_ID;
+            // cloudflare:workers 모듈에서 제공하는 env 객체를 우선 사용합니다.
+            botToken = (env as any)?.TELEGRAM_BOT_TOKEN || globalEnv?.TELEGRAM_BOT_TOKEN || procEnv?.TELEGRAM_BOT_TOKEN || import.meta.env.TELEGRAM_BOT_TOKEN;
+            chatId = (env as any)?.TELEGRAM_CHAT_ID || globalEnv?.TELEGRAM_CHAT_ID || procEnv?.TELEGRAM_CHAT_ID || import.meta.env.TELEGRAM_CHAT_ID;
         } catch (envErr: any) {
             console.error('Env Variable Access Error:', envErr);
         }
 
         if (!botToken || !chatId) {
             const debugInfo = {
-                hasLocals: !!locals,
-                hasRuntime: !!(locals as any)?.runtime,
-                hasEnv: !!(locals as any)?.runtime?.env,
-                envKeys: (locals as any)?.runtime?.env ? Object.keys((locals as any).runtime.env).filter(k => !k.includes('TOKEN') && !k.includes('ID')) : [],
+                envKeys: env ? Object.keys(env).filter(k => !k.includes('TOKEN') && !k.includes('ID')) : [],
                 foundBot: !!botToken,
                 foundChat: !!chatId
             };
