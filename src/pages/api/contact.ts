@@ -61,7 +61,7 @@ export const POST: APIRoute = async ({ request }) => {
             const errorText = await telegramRes.text();
             console.error('Telegram API Error:', errorText);
             return new Response(
-                JSON.stringify({ error: `텔레그램 메시지 발송 실패: ${errorText.substring(0, 50)}` }),
+                JSON.stringify({ error: `텔레그램 메시지 발송 실패: ${errorText.substring(0, 150)}` }),
                 { status: 502, headers: { 'Content-Type': 'application/json' } }
             );
         }
