@@ -19,17 +19,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
         let chatId = '';
         
         try {
-            const runtime = locals && (locals as any).runtime;
-            botToken = runtime?.env?.TELEGRAM_BOT_TOKEN;
-            chatId = runtime?.env?.TELEGRAM_CHAT_ID;
-            
-            // Fallback for local dev
-            if (!botToken) {
-                botToken = import.meta.env.TELEGRAM_BOT_TOKEN;
-            }
-            if (!chatId) {
-                chatId = import.meta.env.TELEGRAM_CHAT_ID;
-            }
+            const runtimeEnv = locals && (locals as any).runtime ? (locals as any).runtime.env : {};
+            const globalEnv = (globalThis as any)?.env || {};
+            const procEnv = (typeof process !== 'undefined' && process.env) ? process.env : {};
+
+            botToken = runtimeEnv?.TELEGRAM_BOT_TOKEN || globalEnv?.TELEGRAM_BOT_TOKEN || procEnv?.TELEGRAM_BOT_TOKEN || import.meta.env.TELEGRAM_BOT_TOKEN;
+            chatId = runtimeEnv?.TELEGRAM_CHAT_ID || globalEnv?.TELEGRAM_CHAT_ID || procEnv?.TELEGRAM_CHAT_ID || import.meta.env.TELEGRAM_CHAT_ID;
         } catch (envErr: any) {
             console.error('Env Variable Access Error:', envErr);
         }
