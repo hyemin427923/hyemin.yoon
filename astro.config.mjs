@@ -5,6 +5,14 @@ import cloudflare from '@astrojs/cloudflare';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://hyemin.pages.dev',
   output: 'server',
-  adapter: cloudflare()
+  adapter: cloudflare(),
+  vite: {
+    server: {
+      watch: {
+        usePolling: true
+      }
+    }
+  }
 });
