@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node -e \"try { require('fs').unlinkSync('dist/server/wrangler.json') } catch(e) {}\"",
     "preview": "astro preview",
     "astro": "astro",
     "generate-types": "wrangler types"
