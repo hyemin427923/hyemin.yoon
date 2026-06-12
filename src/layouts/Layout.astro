@@ -1,0 +1,188 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const { 
+	title = "윤혜민 | HR Generalist Portfolio", 
+	description = "성과 및 보상(Performance & Compensation) 중심의 HR Generalist 윤혜민의 포트폴리오입니다." 
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <meta name="description" content={description}>
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content={title}>
+    <meta property="og:description" content={description}>
+    
+    <!-- Google Fonts for Body Text (Noto Sans KR & Montserrat) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <header id="main-header">
+        <div class="header-container">
+            <h1 class="logo">
+                <a href="#hero">hyemin<span>.hr</span></a>
+            </h1>
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="#about" class="nav-link">소개</a></li>
+                    <li><a href="#skills" class="nav-link">핵심 역량</a></li>
+                    <li><a href="#experience" class="nav-link">주요 경력</a></li>
+                    <li><a href="#projects" class="nav-link">핵심 성과</a></li>
+                    <li><a href="#contact" class="nav-link">연락처</a></li>
+                </ul>
+            </nav>
+            <button class="mobile-menu-btn" aria-label="메뉴 열기" id="mobile-menu-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-nav" id="mobile-nav">
+        <ul>
+            <li><a href="#about" class="mobile-nav-link">소개</a></li>
+            <li><a href="#skills" class="mobile-nav-link">핵심 역량</a></li>
+            <li><a href="#experience" class="mobile-nav-link">주요 경력</a></li>
+            <li><a href="#projects" class="mobile-nav-link">핵심 성과</a></li>
+            <li><a href="#contact" class="mobile-nav-link">연락처</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content Slot -->
+    <slot />
+
+    <!-- Footer -->
+    <footer id="main-footer">
+        <div class="footer-container">
+            <p class="copyright">&copy; 2026. 윤혜민. All rights reserved.</p>
+            <p class="footer-credit">Designed with <i class="fa-solid fa-heart" style="color: #2AC1BC;"></i> in 배달의민족 Style</p>
+        </div>
+    </footer>
+
+    <!-- Client-side Interactive Script -->
+    <script>
+        // 클라이언트에서 동작할 JS 로직
+        document.addEventListener('DOMContentLoaded', () => {
+            const header = document.getElementById('main-header');
+            
+            // Header Scroll Effect
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    header?.classList.add('scrolled');
+                } else {
+                    header?.classList.remove('scrolled');
+                }
+            });
+
+            // Mobile Menu Toggle
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileNav = document.getElementById('mobile-nav');
+            const mobileMenuIcon = mobileMenuBtn?.querySelector('i');
+
+            mobileMenuBtn?.addEventListener('click', () => {
+                if (mobileNav && mobileMenuIcon) {
+                    const isOpen = mobileNav.style.display === 'block';
+                    if (isOpen) {
+                        mobileNav.style.display = 'none';
+                        mobileMenuIcon.className = 'fa-solid fa-bars';
+                    } else {
+                        mobileNav.style.display = 'block';
+                        mobileMenuIcon.className = 'fa-solid fa-xmark';
+                    }
+                }
+            });
+
+            // Close mobile menu when link clicked
+            const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (mobileNav && mobileMenuIcon) {
+                        mobileNav.style.display = 'none';
+                        mobileMenuIcon.className = 'fa-solid fa-bars';
+                    }
+                });
+            });
+
+            // Active Link Scrollspy & Skills Anim
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const skillProgressBars = document.querySelectorAll('.skill-progress') as NodeListOf<HTMLElement>;
+
+            const progressWidths: string[] = [];
+            skillProgressBars.forEach((bar, index) => {
+                progressWidths[index] = bar.style.width;
+                bar.style.width = '0%';
+            });
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-20% 0px -60% 0px',
+                threshold: 0
+            };
+
+            const sectionObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === `#${id}`) {
+                                link.classList.add('active');
+                            }
+                        });
+
+                        if (id === 'skills') {
+                            skillProgressBars.forEach((bar, index) => {
+                                bar.style.width = progressWidths[index];
+                            });
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                sectionObserver.observe(section);
+            });
+
+            // Smooth Scroll
+            const allLinks = document.querySelectorAll('.nav-link, .mobile-nav-link, .hero-actions a, .scroll-down-indicator, .logo a');
+            allLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const targetId = link.getAttribute('href');
+                    if (targetId && targetId.startsWith('#')) {
+                        e.preventDefault();
+                        const targetSection = document.querySelector(targetId) as HTMLElement;
+                        if (targetSection && header) {
+                            const headerHeight = header.offsetHeight;
+                            const targetPosition = targetSection.offsetTop - headerHeight;
+                            window.scrollTo({
+                                top: targetPosition,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
