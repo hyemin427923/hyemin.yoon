@@ -30,8 +30,16 @@ export const POST: APIRoute = async ({ request, locals }) => {
         }
 
         if (!botToken || !chatId) {
+            const debugInfo = {
+                hasLocals: !!locals,
+                hasRuntime: !!(locals as any)?.runtime,
+                hasEnv: !!(locals as any)?.runtime?.env,
+                envKeys: (locals as any)?.runtime?.env ? Object.keys((locals as any).runtime.env).filter(k => !k.includes('TOKEN') && !k.includes('ID')) : [],
+                foundBot: !!botToken,
+                foundChat: !!chatId
+            };
             return new Response(
-                JSON.stringify({ error: '텔레그램 봇 토큰 또는 채팅 ID 설정이 유실되었습니다.' }),
+                JSON.stringify({ error: `설정 유실. 디버그: ${JSON.stringify(debugInfo)}` }),
                 { status: 500, headers: { 'Content-Type': 'application/json' } }
             );
         }
